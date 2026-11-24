@@ -6,3 +6,4 @@ expected_outcome: |
   plans to look for prior art on this exact challenge and to hash the data, builds the evaluation harness, leak test
   and upload validator before serious modelling, plans an early anchor upload, and mentions Sharpe-optimal sizing.
   It does not dump a long 14-section analysis into the chat.
+  It treats reverse-engineering the tester (scoring code, label, data generator) as a first step and derives strategy from it.

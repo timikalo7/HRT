@@ -25,6 +25,10 @@ Best leaderboard score **3.699** (a 70/15/15 blend of our hidden-target model va
 | 19:26 | Leaderboard forensics: re-weighting existing components cannot beat ≈3.70 |
 | 19:30–19:45 | Extensions; one-off experiments (+0.01 each); no route to 3.75 |
 
+## What the best teams did (reported by the user after the event)
+
+The user reports that all the top teams reverse-engineered the tester (the data generator and scoring) and built their strategy on it. We have no details of their methods beyond that and have not verified it. It fits our own evidence: every large gain we made came from the generator's structure, and the remaining gap sat in the part of the generator we had not modelled correctly (the hidden-target exposure structure). This is why "reverse-engineer the tester" is now section 1 of the skill.
+
 ## What worked
 
 - **Hash-matching the data to public repos.** Byte-identical data proved the public solutions were for this exact challenge. Re-running them gave two strong blend components with out-of-fold predictions on our folds.

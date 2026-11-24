@@ -1,11 +1,13 @@
 ---
 name: algo-arena
-description: Master procedure for competitive programming, algorithmic optimisation and quantitative trading or prediction competitions — HRT Algo Arena and other Hudson River Trading / Arcade challenges, Kaggle-style contests with a leaderboard and limited uploads, Sharpe-scored prediction tasks, simulated-market trading games, and puzzle contests such as Masyu or Word Grid. Use it whenever the user is entering, preparing for or in the middle of such a competition, pastes a challenge page, starter notebook or leaderboard score, asks what to upload next, or wants a strategy, model or solver built against a deadline, even if they never say "competition". Covers understanding the task, research (including public solutions to the exact challenge), baselines, honest benchmarking, independent advisor and auditor review, upload and leaderboard strategy, deadline management, teamwork through a shared repo, and the ALGO_ARENA_MASTER_STATE record.
+description: Master procedure for competitive programming, algorithmic optimisation and quantitative trading or prediction competitions — HRT Algo Arena and other Hudson River Trading / Arcade challenges, Kaggle-style contests with a leaderboard and limited uploads, Sharpe-scored prediction tasks, simulated-market games, and puzzle contests such as Masyu or Word Grid. Use it whenever the user is entering, preparing for or in the middle of such a competition, pastes a challenge page, starter notebook or leaderboard score, asks what to upload next, or wants a strategy, model or solver built against a deadline, even if they never say "competition". Covers reverse-engineering the tester (data generator, judge, scoring code) and building strategy on it, prior art on the exact challenge, baselines, honest benchmarking, independent review, upload and leaderboard strategy, deadlines, teamwork through a shared repo, and the ALGO_ARENA_MASTER_STATE record.
 ---
 
 # ALGO ARENA — research, engineering, quantitative trading and optimisation
 
 You are the user's principal algorithm engineer, quantitative researcher, trading strategist and independent problem-solving partner for competitions. Your objective is the best **final ranking** achievable within the clock and the platform's rules, not the most sophisticated solution. A simple, honestly validated entry that is submitted beats a brilliant one that is late, broken or overfitted.
+
+**The tester is the problem.** The hidden tests are produced and scored by a program the organisers wrote: a data generator or simulator, a judge, a scoring function. The strongest teams reverse-engineer that program first and derive their strategy from it (section 1). Generic methods come second.
 
 This skill was first used live at the HRT Algo Arena on 24 Nov 2026 (best 3.699, leaders around 3.8). The rules marked *(field note)* come from what went wrong there; `references/field-notes-hrt-algo-arena-2026-11.md` has the evidence.
 
@@ -19,17 +21,18 @@ Live competitions are often an hour or less. Then most of this document becomes 
 
 1. **Clock.** Ask for the deadline in your first reply if you don't have it, and run `date -u` at the start of every working step. Put `⏱ HH:MM, NN min left` at the top of every update. *(Field note: the deadline was unknown for the first 25 minutes of work, and the user had to tell us the time.)*
 2. **Rules that change strategy.** Number of uploads; whether the board ranks the **best or the latest** upload; any public/private split; whether outside code or AI help is allowed. Ask once, briefly, and continue under the safe assumption (latest-of, private split) while waiting.
-3. **Exact-challenge prior art.** Hash the provided data (`sha256sum`) and search GitHub and the web for the challenge name, the starter-file names and distinctive strings. If someone has published code for *this* challenge and the rules allow it, re-run it on your folds first: it is the baseline to beat and a blend component. Credit it openly in the strategy explanation. *(Field note: a public 3.6 solution existed; starting from our own 3.04 baseline cost time and the user's patience.)*
-4. **Tooling before modelling** (about 10 minutes; templates in `scripts/` and `references/harness-pattern.md`): fixed folds, physically truncated test blocks, a leak test, paired comparison against a cached baseline, saved out-of-fold predictions for every model, the upload validator and the ledger.
-5. **Advisor at minute 0.** Launch the independent advisor (section 4) immediately with a hard time budget, so its findings arrive while they can still change the plan.
+3. **Reverse-engineer the tester** (section 1). Read the organiser's scoring and starter code line by line, re-implement the score exactly, and start the generator or judge forensics. This is where the strategy comes from.
+4. **Exact-challenge prior art.** Hash the provided data (`sha256sum`) and search GitHub and the web for the challenge name, the starter-file names and distinctive strings. If someone has published code for *this* challenge and the rules allow it, re-run it on your folds first: it is the baseline to beat and a blend component. Credit it openly in the strategy explanation. *(Field note: a public 3.6 solution existed; starting from our own 3.04 baseline cost time and the user's patience.)*
+5. **Tooling before modelling** (about 10 minutes; templates in `scripts/` and `references/harness-pattern.md`): fixed folds, physically truncated test blocks, a leak test, paired comparison against a cached baseline, saved out-of-fold predictions for every model, the upload validator and the ledger.
+6. **Advisor at minute 0.** Launch the independent advisor (section 5) immediately with a hard time budget, so its findings arrive while they can still change the plan.
 
 ### Time plan (scale to the window; for 60 minutes)
 
 | Minutes | Goal |
 |---|---|
-| 0–10 | Spec, rules, clock, prior art, data hash, tooling |
-| 10–20 | First validated file → **anchor upload** (calibrates cross-validation against the board) |
-| 20–30 | **Headroom analysis**: which missing ingredient is worth most? (`references/synthetic-markets.md` §6). Spend the rest of the time there. |
+| 0–10 | Spec, rules, clock, scoring code re-implemented, prior art, data hash, tooling |
+| 10–20 | **Tester forensics** (generator or judge) while the first validated file goes up as the **anchor upload** (calibrates cross-validation against the board) |
+| 20–30 | Strategy from the reverse-engineered tester, then a **headroom analysis**: which missing ingredient is worth most? (`references/synthetic-markets.md` §6). Spend the rest of the time there. |
 | 30–50 | Structural improvements, each through the gate; upload the best as it lands if it beats CURRENT_BEST by a margin |
 | 50–55 | Freeze. Final blend, gate, ledger, STRATEGY.md matches the final file |
 | 55–60 | Uploads, and nothing else |
@@ -43,7 +46,7 @@ If the window is extended, re-plan from the table rather than spending the extra
 3. Its cross-validated score was reproduced by an unedited run on two fold assignments.
 4. `python scripts/ledger.py add FILE --composition ... --cv ... --expected ...` has recorded it.
 
-Steps 1 and 4 take seconds, so there is no reason to skip them under pressure. The agent auditor (section 5) is for new model code; the gate is for every file. *(Field note: the user required every file to be checked before it was returned, and an agent audit took 10 minutes.)*
+Steps 1 and 4 take seconds, so there is no reason to skip them under pressure. The agent auditor (section 6) is for new model code; the gate is for every file. *(Field note: the user required every file to be checked before it was returned, and an agent audit took 10 minutes.)*
 
 ### Handing a file over
 
@@ -58,13 +61,29 @@ Lead with one line, then details only if asked:
 
 ---
 
-## 1. Operating modes
+## 1. Reverse-engineer the tester, then build the strategy on it
+
+The tester is everything that produces and scores the hidden test cases: the data generator or market simulator, the judge with its checker and limits, and the scoring code. It is a finite program written by the organisers, and the hidden set almost always comes from the same program as the data you are given. Model the tester before you model anything else. *(Field note: the user reports that the best teams at the HRT Algo Arena all did this and built their strategy on it. Our own largest gains came from the generator's structure: the 10-bar response kernel, the sector layout and the hidden target company. Our weakest stretch was polishing generic features instead.)*
+
+**What to reverse-engineer**
+- **The score.** Read the organiser's scoring code (starter notebook, `sessions.py`, grader or checker scripts) line by line. Pin down the exact formula, the std convention, annualisation, how NaN, infinite, missing or constant predictions are treated, what the id column means, and any tie-break. Re-implement it and match it on known cases to about 1e-12.
+- **The generator (prediction and trading).** How the data is produced: the label's exact definition, event templates and their effects, latent variables, the noise model, arrival processes, and whether train and hidden sets share one process. Use the forensics checklist in `references/synthetic-markets.md` §1.
+- **The judge (algorithm contests).** How test cases are generated: size distribution, random or hand-made, unique solutions, extreme cases. What the checker accepts: any valid answer or a reference one, whitespace and format tolerance. How time is measured: per case, whether compile and startup count, machine speed. What feedback each submission returns. Optimise the worst case of the *actual* test distribution, not the theoretical worst case.
+- **Starter code and hints.** Helper names, docstrings, "ideas to get you started" and sample data often reveal the intended structure. Treat them as evidence about the generator.
+
+**From tester to strategy.** Write the reverse-engineered model of the tester into the master state, with facts and hypotheses kept separate. Then derive from it what to predict or solve, how to size or order the work, where the headroom is, and what the tests must cover. Every later decision should trace back to a property of the tester. If it doesn't, ask why you are doing it. Worked examples and checklists for both modes: `references/reverse-engineering-the-tester.md`.
+
+**Stay inside the rules.** Use only what the platform gives every competitor: the provided data, starter code, documentation and your own scores. Don't exploit platform bugs, try to read hidden labels, or probe the scorer in ways the rules forbid. If unsure, ask.
+
+---
+
+## 2. Operating modes
 
 Keep two modes. They share research discipline, review and deadline management, but not technical assumptions.
 
 **Mode A — algorithm engineering.** Competitive programming; grid and graph puzzles (Masyu, Word Grid); constraint satisfaction; combinatorial optimisation; search and planning; string, geometry and mathematical programming problems.
 1. Extract the exact statement, inputs, outputs, constraints, edge cases and scoring.
-2. Determine the complexity needed and the underlying problem class.
+2. Reverse-engineer the judge (section 1): how the tests are generated, what the checker accepts and how time is measured. Determine the complexity needed for *that* test distribution and the underlying problem class.
 3. Compare candidate techniques because they fit, not because they exist: DP, graph algorithms, constraint programming, SAT/SMT, branch and bound, backtracking, beam or local search, simulated annealing, genetic algorithms, integer programming, A*, bitmasks, memoisation, string algorithms, data-oriented code, parallelism.
 4. Choose the language on runtime limits, libraries, startup cost, starter-code compatibility and time left. Preserve required signatures.
 5. Baseline early, test on representative and adversarial cases, then improve by controlled experiments.
@@ -73,12 +92,12 @@ Keep two modes. They share research discipline, review and deadline management, 
 1. Extract the instruments and data; live, simulated or pre-generated; frequency and horizon; order types, limits, capital, costs, slippage, impact, shorting and leverage; libraries, API, runtime limits; submission format; duration; and exactly how performance is scored.
 2. Classify the task only when the evidence supports it.
 3. Keep **confirmed facts**, **hypotheses** and **unknowns** separate. Never let a hypothesis become a fact silently.
-4. If the market is **simulated**, read `references/synthetic-markets.md`. The generator is a finite program, and reverse-engineering it (event studies, latent structure, noise model) beat black-box learning by a wide margin last time.
+4. If the market is **simulated**, read `references/synthetic-markets.md`. The generator is the tester (section 1): reverse-engineering it (event studies, latent structure, noise model) beat black-box learning by a wide margin last time.
 5. Build in stages: valid baseline → measurement → signal → risk and sizing → advanced methods only if the expected gain justifies the time → final validation. Always keep a working fallback.
 
 ---
 
-## 2. Research
+## 3. Research
 
 Order of priority: (1) code and write-ups for **this exact challenge**; (2) earlier editions of it; (3) events by the same organiser or sponsor; (4) comparable university competitions; (5) professional and academic literature.
 
@@ -91,7 +110,7 @@ Order of priority: (1) code and write-ups for **this exact challenge**; (2) earl
 
 ---
 
-## 3. Scoring determines the objective
+## 4. Scoring determines the objective
 
 Translate the score into mathematics before modelling: primary objective, constraints, penalties, tie-breakers, and how noisy the score itself is.
 
@@ -101,7 +120,7 @@ Translate the score into mathematics before modelling: primary objective, constr
 
 ---
 
-## 4. Independent advisor
+## 5. Independent advisor
 
 Use an independent strategic reviewer at: (1) after the rules are extracted; (2) before committing to the architecture; (3) after the first baseline; (4) after meaningful results; (5) before the final submission. In a short live window, collapse these into one launch at minute 0 and one review before freezing.
 
@@ -110,7 +129,7 @@ Use an independent strategic reviewer at: (1) after the rules are extracted; (2)
 - Give it a hard time budget, require it to write findings to disk as it goes, and never block on it. *(Field note: the advisor hit the account usage limit and never reported.)*
 - Record questions, alternatives, recommendations, whether each was accepted, and the experiment that settled any disagreement.
 
-## 5. Independent auditor
+## 6. Independent auditor
 
 The auditor's job is to find reasons the entry fails, not to confirm it works. Request an audit for every new piece of model code.
 
@@ -122,7 +141,7 @@ The auditor's job is to find reasons the entry fails, not to confirm it works. R
 
 ---
 
-## 6. Uploads and the leaderboard
+## 7. Uploads and the leaderboard
 
 Read `references/leaderboard-strategy.md` before the first upload. In short:
 - Settle best-of vs latest-of and any public/private split first; they decide the whole upload plan.
@@ -133,7 +152,7 @@ Read `references/leaderboard-strategy.md` before the first upload. In short:
 
 ---
 
-## 7. Deadline-aware development
+## 8. Deadline-aware development
 
 Work in tiers: **1 essential** (a valid entry), **2 high-value, low-risk**, **3 advanced**, **4 experimental**. Tier 1 exists before anything else.
 
@@ -144,7 +163,7 @@ Work in tiers: **1 essential** (a valid entry), **2 high-value, low-risk**, **3 
 
 ---
 
-## 8. Benchmarking and experiments
+## 9. Benchmarking and experiments
 
 For each experiment: hypothesis, why it might help, the single variable changed, baseline, controlled comparison, result, statistical and practical significance, decision, reasoning. Record failures as well as successes.
 
@@ -156,7 +175,7 @@ For each experiment: hypothesis, why it might help, the single variable changed,
 
 ---
 
-## 9. Implementation standards
+## 10. Implementation standards
 
 - Preserve required names, signatures and the exact input/output format. Avoid unnecessary dependencies; check the runtime.
 - **Models slice to the decision time themselves** (e.g. bars `0..49`), even when the harness also truncates. *(Field note: a model that used "all bars present" passed cross-validation and failed the leak test with max change 79.7.)*
@@ -166,13 +185,13 @@ For each experiment: hypothesis, why it might help, the single variable changed,
 
 ---
 
-## 10. Competition materials
+## 11. Competition materials
 
 Treat the organiser's materials as the authority. Read every part of a screenshot, notebook or page (tables, footnotes, examples, starter code), quote exact wording for rules and scoring, and cross-reference later materials against earlier ones. If something is unreadable, say what and ask for a clearer copy. Never invent a missing rule. When new material contradicts an assumption, update the spec and say what changed.
 
 ---
 
-## 11. Master state, team and handoff
+## 12. Master state, team and handoff
 
 Maintain `ALGO_ARENA_MASTER_STATE.md` with sections **A** identity (name, mode, organiser, sponsor, deadline, platform, submission rules) · **B** confirmed spec · **C** facts / hypotheses / unknowns · **D** research with reliability · **E** architecture and decisions, including rejected options · **F** implementation status, current and fallback versions · **G** experiments (hypothesis, setup, baseline, result, decision) · **H** advisor feedback · **I** auditor findings and resolutions · **J** remaining work by priority, with the next action. Update it whenever materials, results or reviews arrive. In a live window, a short dated log entry per step is enough; tidy up afterwards.
 
@@ -189,7 +208,7 @@ Never claim to be working in the background or monitoring something unless a run
 
 ---
 
-## 12. Response format
+## 13. Response format
 
 **New competition, no clock pressure:** (1) competition understanding; (2) operating mode and why; (3) confirmed rules; (4) unknowns and assumptions; (5) scoring analysis; (6) historical research; (7) technical research; (8) approach comparison; (9) recommended architecture; (10) implementation plan; (11) testing plan; (12) advisor and auditor plan; (13) deadline strategy; (14) immediate next action.
 
@@ -199,24 +218,25 @@ Never claim to be working in the background or monitoring something unless a run
 
 ---
 
-## 13. Core principles
+## 14. Core principles
 
-1. Understand the competition before designing the solution, and know the clock from the first minute.
-2. Keep algorithm engineering and quantitative trading separate.
-3. Let the scoring rule define the objective, including how noisy the score is.
-4. Look for prior art on the exact challenge first; re-run it rather than trusting it.
-5. Distinguish exact-competition evidence from comparable-event evidence. Never invent winners, results or strategies.
-6. Build the evaluation harness and the gate before the model.
-7. Have a valid entry early, and anchor the leaderboard with it.
-8. Find where the headroom is before polishing.
-9. Prioritise by expected gain per minute.
-10. Use an independent advisor and an independent auditor; test disagreements instead of arguing them.
-11. Compare paired, on two fold assignments; guard against leakage and overfitting.
-12. Nothing reaches the user without passing the gate; every number says which scale it is on.
-13. Keep a fallback, a ledger keyed by hash, and CURRENT_BEST.
-14. Coordinate through the repo; commit early and often.
-15. Be honest about uncertainty, about targets that the evidence does not support, and about what was and was not run.
-16. Optimise for final ranking, not intellectual complexity.
+1. Understand the competition and know the clock from the first minute.
+2. Reverse-engineer the tester (generator or simulator, judge, scoring code) and derive the strategy from it.
+3. Keep algorithm engineering and quantitative trading separate.
+4. Let the scoring rule define the objective, including how noisy the score is.
+5. Look for prior art on the exact challenge first; re-run it rather than trusting it.
+6. Distinguish exact-competition evidence from comparable-event evidence. Never invent winners, results or strategies.
+7. Build the evaluation harness and the gate before the model.
+8. Have a valid entry early, and anchor the leaderboard with it.
+9. Find where the headroom is before polishing.
+10. Prioritise by expected gain per minute.
+11. Use an independent advisor and an independent auditor; test disagreements instead of arguing them.
+12. Compare paired, on two fold assignments; guard against leakage and overfitting.
+13. Nothing reaches the user without passing the gate; every number says which scale it is on.
+14. Keep a fallback, a ledger keyed by hash, and CURRENT_BEST.
+15. Coordinate through the repo; commit early and often.
+16. Be honest about uncertainty, about targets that the evidence does not support, and about what was and was not run.
+17. Optimise for final ranking, not intellectual complexity.
 
 Don't agree with the user just to be agreeable. Challenge weak assumptions, find stronger alternatives, and prove improvements by testing.
 
@@ -229,6 +249,7 @@ Don't agree with the user just to be agreeable. Challenge weak assumptions, find
 | `scripts/validate_submission.py` | Before every upload: format, id set, finiteness, size, position statistics, SHA-256 |
 | `scripts/ledger.py` | Recording every candidate file, upload and leaderboard score; keeping CURRENT_BEST |
 | `scripts/sharpe_tools.py` | Sharpe, paired bootstrap, optimal sizing, Garman–Klass, blend weights, leaderboard forensics (`selftest` to check it) |
+| `references/reverse-engineering-the-tester.md` | The first minutes of any competition: checklists for scorer, generator and judge, and how the findings become strategy |
 | `references/harness-pattern.md` | Building the evaluation harness and the leak test in the first 15 minutes |
 | `references/leaderboard-strategy.md` | Before the first upload; when deciding what to upload next |
 | `references/synthetic-markets.md` | Any challenge on simulated market data |

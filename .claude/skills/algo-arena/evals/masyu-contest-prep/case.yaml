@@ -6,3 +6,4 @@ expected_outcome: |
   connectivity), compares Python and C++ against the 10-second limit and recommends one, and plans tonight's work:
   a baseline solver early, a test set including 40x40 worst cases, timing benchmarks and a validity checker.
   It does not bring in trading machinery such as Sharpe ratios or position sizing.
+  It plans to learn how the judge generates and checks tests and shapes the solver around that distribution.
