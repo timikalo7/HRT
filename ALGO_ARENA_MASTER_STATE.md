@@ -19,6 +19,8 @@ Evidence labels used throughout:
 | Deadline | — | [UNKNOWN] |
 | Submission | `predictions.csv`, columns `headline_id,pred` (`headline_id` = session number), one row per out-of-sample session, **10 uploads** | [OFFICIAL] starter notebook |
 
+**Update 2026-11-24, later in session 1.** The user supplied a challenge link on `arcadegames.hudson-trading.com` ("Arcade"). It could not be read from this session: without a personal join link the page shows only "No join link detected. Open the personal link your recruiter sent you." [MEASURED]. The challenge page text, its rules, deadline and upload allowance are therefore still unseen. What the site's public client code does establish is in B.1 and I.1.
+
 > **The central open question.** Everything below describes the edition of the challenge whose starter kit is public on GitHub (active since at least 2026-10-20). It is a **[HYPOTHESIS]**, not a fact, that the event we are entering is this same challenge with this same data. It must be confirmed against the official materials before any of it is relied on. HRT has run at least one variant with a different target (see D.1, ETH Datathon).
 
 ## B. Specification of the public edition
@@ -34,6 +36,13 @@ All [OFFICIAL] from the organiser's starter notebook and `sessions.py` unless ma
 - **No costs, no position limits, no turnover penalty, no leverage rule.** Only the Sharpe of `pred · return` matters, so the *scale* of predictions is irrelevant and the *relative size* across sessions is everything.
 - **Interface.** Either a function `row -> float` run through `sessions.get_oos_predictions`, or any DataFrame of predictions passed to `sessions.write_submission`. Non-finite predictions are written as 0.
 - **Libraries.** The notebook targets Google Colab; `sessions.py` needs `attrs`, `rich`, `tqdm`, `numpy`, `pandas`. Since only a CSV is uploaded, any offline tooling is usable. [HYPOTHESIS — no rule seen restricting tools]
+
+### B.1 What the Arcade site's public client code shows [MEASURED from the served JavaScript, not from a challenge page]
+
+- Upload check: header must be exactly `headline_id,pred`; two columns; every `pred` finite; no repeated `headline_id`; at least one row; file up to 2 MB. Our baseline file (10,000 rows, ~0.3 MB) passes all of these.
+- CSV challenges are "Scored against hidden labels and ranked by Sharpe ratio", with an "N of M submissions used" counter and a list of earlier uploads with their metrics. The allowance M is set per challenge.
+- Events can be team events (shared notebook, invite codes, name shown on the leaderboard) and can have timed rounds with a "Rules for this round" panel.
+- Access is by a personal link from a recruiter, and the site has a built-in assistant described as: it "explains Python, pandas, numpy, errors and statistics. It cannot see your notebook or the data, and it does not help find patterns in the data. Your questions and its answers are saved and shown to the hiring team."
 
 ## C. Assumptions and unknowns
 
@@ -140,6 +149,7 @@ No `/advisor` command or tool exists in this session, so none has been used. Sub
 No independent audit has been run yet. Open risks:
 
 1. **Integrity / rules.** A public repo contains a ready-made upload file scoring ~3.6. Uploading someone else's predictions is not something this project will do. Whether *reading* public solutions is within the rules is unconfirmed; all code in this repo is our own, but the structural ideas in D.2 were seen there first, and D.3 records which of them we then established independently from the data.
+   **Raised 2026-11-24:** the platform is a recruiting tool (personal recruiter links, a "hiring team" that reviews assistant conversations) and its own assistant is deliberately barred from helping "find patterns in the data" (B.1). That is evidence about the organiser's intent, not a rule we have read. **No further modelling until the "Rules" text for this challenge has been seen.** If it forbids outside help with the modelling, this project stops at explanation and review of the user's own work.
 2. **Wrong-competition risk.** Section C, hypothesis 1.
 3. **Leaderboard overfitting.** 10 uploads against a score with s.e. 0.15; picking the max of several near-identical models buys noise, not skill, if the final ranking uses different data.
 4. **Vocabulary drift.** The slot lists in `arena/core.py` are from this edition. Unknown fillers degrade gracefully (types split rather than break); check that `Data.summary()` reports 50 event types on the official files.
