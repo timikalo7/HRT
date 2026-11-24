@@ -12,7 +12,7 @@ Simulated sessions: one stock, 100 bars, templated fictional headlines. Given ba
 |---|---|
 | `arena/core.py` | Loader, headline parser (company, event type), exact score, leak-safe cross-validation, upload writer |
 | `arena/baseline.py` | One-feature fallback model (3.04 cross-validated) |
-| `arena/latent.py` | Hidden-target model (3.49 cross-validated) |
+| `arena/latent.py` | Hidden-target model with second-stage corrections (3.59 cross-validated) |
 | `arena/blend.py` | Blend upload files at unit scale |
 | `research/` | Scripts behind the numbers in the master state |
 | `submissions/` | Candidate upload files (committed so another session can upload them) |
@@ -23,12 +23,12 @@ Simulated sessions: one stock, 100 bars, templated fictional headlines. Given ba
 ```bash
 pip install -r requirements.txt
 python -m arena.baseline cv            # ~10 s
-python -m arena.latent cv 0 1          # ~1 min; expect about 3.49
-python -m arena.latent write submissions/predictions_c1_latent.csv
-python -m arena.blend submissions/predictions_c2_blend.csv 0.5:submissions/predictions_public_improved_all_rerun.csv 0.5:submissions/predictions_c1_latent.csv
+python -m arena.latent cv 0 1          # ~1 min; expect about 3.59
+python -m arena.latent write submissions/predictions_c3_latent_stage2.csv
+python -m arena.blend submissions/predictions_c5_blend3.csv 0.15:submissions/predictions_public_improved_all_rerun.csv 0.15:submissions/predictions_public_m3564_rerun.csv 0.70:submissions/predictions_c3_latent_stage2.csv   # current best, 3.60
 ```
 
-`submissions/predictions_public_improved_all_rerun.csv` is a re-run of the `improved_all` model from the public repo `github.com/suspiciously-haunted/algo-arena` (clone it next to this repo and see `research/pub_run.py`). It is a blend component, not our own work.
+`submissions/predictions_public_improved_all_rerun.csv` is a re-run of the `improved_all` model from the public repo `github.com/suspiciously-haunted/algo-arena` (clone it next to this repo and see `research/pub_run.py`). It is a blend component, not our own work. `submissions/predictions_public_m3564_rerun.csv` is likewise a re-run of `model_3564.py` from `github.com/ABCPeter123/Quant-Comp-2026` (see `research/run_m3564.py`).
 
 ## Rules of the road
 

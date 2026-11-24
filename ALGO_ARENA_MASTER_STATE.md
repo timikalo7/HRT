@@ -41,6 +41,19 @@ Evidence labels used throughout:
 **Rapid arXiv q-fin search (fresh-context agent).** Sentiment literature: not applicable to templated headlines (consistent with the measured 2.6 vs 3.0+). One idea tested — use the posterior second moment of the owed drift in the sizing denominator (after Spears, Zohren, Roberts, arXiv:2007.15982): model B 3.493 -> 3.497, blend 3.546 -> 3.548 / 3.537 -> 3.539. Inside noise; **rejected** so the audited file stays unchanged. Blend-weight optimisation (Kakushadze, arXiv:1405.4716) already covered by E8: weights 0.4-0.6 are flat.
 **Independent advisor (fresh-context agent, not `/advisor`).** Launched 18:41 UTC; had not returned when the candidate was handed over.
 
+### Later in the window (19:03-19:10 UTC) — leaderboard leaders reported at 3.8
+
+| ID | Change | Result (seed 0 / seed 1) | Decision |
+|---|---|---|---|
+| E9 | Combine the two models at forecast level with one sizing rule instead of blending positions | 3.547 / 3.538 vs position blend 3.546 / 3.537 | no gain, rejected |
+| E10 | Second-stage least squares on [owed drift, headline count, unexplained first-half move, live main-sector headlines] | model B **3.493 -> 3.589 / 3.592**. Unexplained move alone gives 3.561 / 3.568; adding all eight candidate features is slightly worse (3.580 / 3.587) | **kept** — now in `arena/latent.py` |
+| E11 | Blend weight of the public model against the upgraded model B | 0 / 0.1 / 0.25 / 0.5 -> 3.589, 3.591, 3.589, 3.571 (seed 0) | public weight cut to 0.15 |
+| E12 | Second public model (`model_3564.py`, default config) re-run on our folds | 3.455 alone (seed 0 only); three-way 0.15 public / 0.15 m3564 / 0.70 ours = **3.601** vs 3.589 without it | **kept as `predictions_c5_blend3.csv`**; evidence on one fold assignment only |
+
+**Current best candidate: `submissions/predictions_c5_blend3.csv` (3.60 cross-validated).** Leak test on the upgraded model: predictions unchanged (max diff 0.0) after overwriting bars 50-99 of test sessions. Format valid. The independent audit covered the earlier version of model B; the second stage added since then has only our own leak test.
+Cross-validation read about 0.13 below the leaderboard for the public model (3.47 vs a reported ~3.6); if that offset holds, 3.60 maps to roughly 3.7. That is an extrapolation from one data point, not a measurement.
+Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
+
 ---
 
 ## A. Competition identity

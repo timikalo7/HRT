@@ -7,7 +7,9 @@ amplitude, same-sector peers at a fraction, and an other-sector company not at a
 Training (full sessions) fits the event amplitudes and the peer fraction by EM over the hidden
 target. Prediction uses bars 0-49 only: a posterior over which seen company is the target (or
 that it has not appeared yet), then the posterior-weighted drift that first-half headlines
-still owe during bars 50-59, sized by forecast / (variance + forecast^2).
+still owe during bars 50-59. A second-stage linear fit adds three corrections (headline count,
+the first-half move the headlines do not explain, live main-sector headlines), and the position
+is forecast / (variance + forecast^2).
 
   python -m arena.latent cv [seeds]          # cross-validated Sharpe
   python -m arena.latent write preds.csv     # fit on all in-sample, write the upload file
@@ -171,23 +173,34 @@ class LatentTarget:
                               shape=(prep.n * nbars, len(self.types)))
             amp = lsqr(A, (y / sig[:, None]).reshape(-1), atol=1e-12, btol=1e-12)[0]
         self.amp, self.peer = amp, float(peer)
+        # Second stage: label on [owed drift, headline count, unexplained first-half move,
+        # live main-sector headlines], using first-half features of the training sessions.
+        Z = self._features(train.take(np.arange(len(train)), first_half=True))
+        self.beta = np.linalg.lstsq(Z, train.returns, rcond=None)[0]
 
-    def forecast(self, test: Block) -> tuple[np.ndarray, np.ndarray]:
-        """Posterior-mean owed drift and the session's bar volatility, from bars 0..HALF only."""
+    def _features(self, test: Block) -> np.ndarray:
+        """Second-stage inputs from bars 0..HALF and their headlines only."""
         prep = _Prep(test, self.types, self.sectors)
         lr = test.logret()[:, : HALF + 1]
         y = lr - self.mu0
         sig = np.maximum(y.std(1), 1e-6)
         X = prep.paths(self.amp, HALF + 1)
-        p, _ = _posterior(y, sig, X, prep, self.peer, with_unseen=True, temp=self.temp)
+        p, fit = _posterior(y, sig, X, prep, self.peer, with_unseen=True, temp=self.temp)
         pend = prep.pending(self.amp)
         peer_pend = np.einsum("scj,sj->sc", prep.peer.astype(float), pend)
         owed_if_target = pend + self.peer * peer_pend
         owed_if_unseen = self.peer * (prep.main * pend).sum(1)
         mu = (p[:, :4] * owed_if_target).sum(1) + p[:, 4] * owed_if_unseen
-        # second moment of the owed drift over the target posterior (>= mu^2)
-        self.last_m2 = (p[:, :4] * owed_if_target ** 2).sum(1) + p[:, 4] * owed_if_unseen ** 2
-        return mu, range_variance(test)
+        n = len(test)
+        count = np.bincount(prep.hs, minlength=n).astype(float)
+        unexplained = y.sum(1) - np.einsum("sc,sct->s", p, fit)
+        main_h = prep.main[prep.hs, prep.hj]
+        live = np.bincount(prep.hs, weights=(main_h & (prep.hb >= HALF - 9)).astype(float), minlength=n)
+        return np.column_stack([mu, count, unexplained, live, np.ones(n)])
+
+    def forecast(self, test: Block) -> tuple[np.ndarray, np.ndarray]:
+        """Forecast of the 10-bar return and the session's per-bar variance, from bars 0..HALF only."""
+        return self._features(test) @ self.beta, range_variance(test)
 
     def predict(self, test: Block) -> np.ndarray:
         """Sharpe-optimal position: forecast / conditional second moment of the 10-bar return."""
