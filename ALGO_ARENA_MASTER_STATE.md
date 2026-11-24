@@ -88,6 +88,12 @@ Reading: differences of 0.02-0.04 between files that are 99.8% correlated. The f
 - E17: continuous per-company exposures (Gaussian/ridge posterior from the first-half price reaction) as an extra second-stage feature. Best setting (prior variance 0.5, range-based noise scale): 3.602 / 3.604 against 3.589 / 3.592 — about +0.01 on both fold assignments, small but consistent. As a replacement for the discrete-target forecast it is worse (3.25-3.60 depending on prior variance). **Not built into the model**: found with one upload left and no time to regenerate and re-test. Worth adopting next: `research/stage4.py`.
 - Last upload handed over: `c15_lb_informed` (predicted about 3.70). Best confirmed leaderboard score: **3.699**.
 
+### Extension, continued (19:30-19:34 UTC)
+
+- E18: do event types reveal the target? No. Average full-session posterior that a headline's company is the target is 0.29-0.35 for every one of the 50 types against a prior of 0.32. The ten rare no-slot types are not target-only either (77-82% main-sector, like the rest).
+- E19: value of knowing the target. Using the full-session posterior in place of the bar-49 one gives 4.25 (soft) / 4.20 (hard) against 3.49 for the same forecast with the bar-49 posterior. **This number is inflated** — the full-session posterior has seen bars 50-59 — but it says the headroom is in target inference, not in corrections or blending. A clean version would use bars 0-49 and 60-99 only.
+- E20: `research/final_variant.py` — second stage with two extra features (continuous-exposure forecast, positive part of mu): **3.611 / 3.613** against 3.589 / 3.592. Leak test: max change 0.0. Written as `c17_latent_plus`; blended as `c18_final_blend` = 0.12 public + 0.10 m3564 + 0.39 improver variant + 0.39 this variant. The blend weights were not cross-validated (no out-of-fold array for the new variant was saved).
+
 Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
 
 ---
