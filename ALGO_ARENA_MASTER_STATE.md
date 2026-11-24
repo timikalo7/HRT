@@ -106,3 +106,12 @@ _No consultations yet._ Next: advisor-style challenge of the model ceiling and a
 
 Key finding: per-headline impact slope is 1.29 for main-industry headlines vs 0.27 for off-industry ones (split-half test).
 Run: `cd arena_kit && python3 model4.py --submit ind`.
+| 15 | **Learned industries** (cluster 80 companies by co-occurrence → 5×16; fixes Trading Co→consumer, Solutions→energy, Labs→tech) | **3.520** | **FINAL → `submissions/kit4_ind_learned.csv`** |
+| 16 | Ties count as main | 3.519 | no change |
+| 17 | Rates per type×industry (short / full) | 3.466 / 3.394 | reject (too few obs) |
+| 18 | Grid: no owed_off, lmax10, full types, shrink 5/60, power 1.5, clip 3, alpha 1, no price feats | 3.485–3.525 | plateau |
+| 19 | + per-fold IRF (main-industry) feature | 3.483 | reject |
+| 20 | Topic × industry match | split-half corr −0.14 | reject |
+
+With learned industries: main-industry slope 1.31 (before and after bar 49), off-industry slope ≈ 0.
+Run: `cd arena_kit && python3 model4.py --submit ind`.
