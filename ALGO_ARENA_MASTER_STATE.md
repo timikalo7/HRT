@@ -52,6 +52,17 @@ Evidence labels used throughout:
 
 **Current best candidate: `submissions/predictions_c5_blend3.csv` (3.60 cross-validated).** Leak test on the upgraded model: predictions unchanged (max diff 0.0) after overwriting bars 50-99 of test sessions. Format valid. The independent audit covered the earlier version of model B; the second stage added since then has only our own leak test.
 Cross-validation read about 0.13 below the leaderboard for the public model (3.47 vs a reported ~3.6); if that offset holds, 3.60 maps to roughly 3.7. That is an extrapolation from one data point, not a measurement.
+### Leaderboard and final minutes (19:10-19:14 UTC)
+
+- **First upload scored 3.669** (submitted 19:10:39). The page states "Your best Sharpe ratio is ranked on the leaderboard", so **best-of counts** and further uploads cannot lower the standing. Which file this was is not confirmed; 3.669 matches `c2_blend` (CV 3.54) under the +0.13 CV-to-leaderboard offset seen for the public model.
+- Leaders reported at about 3.8.
+- E13 (ours): further second-stage features (unexplained move split by window, own/peer split, most-likely-target drift, entropy x mu, late headline count, eleven-feature set) — all within +/-0.01 or worse on both seeds; only the positive part of mu was +0.01 on both. Rejected as inside noise.
+- E14 (independent improver agent): surprise features, sign split, conflict, recent price moves, fitted variance — best variant +0.008 / +0.004; "no clear win". Its variant is offered only as an extra draw (`c6`).
+- E15 (ours): numbers and slot words inside headlines do not change the effect — correlation of amount / percentage with the response within +/-0.03 for every type; slot fillers chi-square 238 on 252 degrees of freedom. The public claim is now verified by us.
+- The linear second stage looks saturated near 3.60 CV. Untested ideas with real upside: semi-supervised EM using out-of-sample first halves; modelling the headline arrival process for bars 50-59; a non-Gaussian likelihood for the target posterior.
+- Independent advisor agent: terminated by the account usage limit at about 19:12 without reporting. Its partial work can be resumed after the limit resets.
+- Candidate files for the remaining uploads, in order: `c5_blend3` (3.60), `c7_ours_m3564`, `c6_blend3_variant`, `c3_latent_stage2`.
+
 Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
 
 ---
