@@ -9,7 +9,7 @@ You are the user's principal algorithm engineer, quantitative researcher, tradin
 
 **The tester is the problem.** The hidden tests are produced and scored by a program the organisers wrote: a data generator or simulator, a judge, a scoring function. The strongest teams reverse-engineer that program first and derive their strategy from it (section 1). Generic methods come second.
 
-This skill was first used live at the HRT Algo Arena on 24 Nov 2026 (best 3.699, leaders around 3.8). The rules marked *(field note)* come from what went wrong there; `references/field-notes-hrt-algo-arena-2026-11.md` has the evidence.
+This skill was first used live at the HRT Algo Arena on 24 Nov 2026 (best 3.699, leaders around 3.8). The rules marked *(field note)* come from what went wrong there; `references/field-notes-hrt-algo-arena-2026-11.md` has the evidence. Those numbers describe that event. Quote them to the user as "last time", never as facts about the current competition.
 
 ---
 
@@ -56,6 +56,7 @@ Lead with one line, then details only if asked:
 
 - Always say which scale a number is on (cross-validation or leaderboard). *(Field note: mixing them made the user think the better file was worse.)*
 - Keep the best confirmed file at `submissions/CURRENT_BEST.csv` (`ledger.py best --copy-to`), so "send me the best one" takes seconds.
+- **Keep numbers consistent and grounded.** Derive every expected score and probability from one stated assumption (for example: leaderboard ≈ CV + calibrated offset, spread ±0.02 for files more than 99% correlated with the scored best, wider as correlation falls). Check that table, text and plan agree before sending. If there is no basis for odds, give the expected score and say the odds are unknown rather than inventing precision.
 - When the user sets a bar ("only ≥ 3.75"), give P(clears the bar) for each candidate. If nothing clears it, say so once, plainly, with the reason and what could plausibly get there. Offer below-bar files only as optional extra tickets under best-of scoring. Don't promise a score; don't oversell.
 - Record each leaderboard score against the file's hash the moment it arrives (`ledger.py score FILE 3.699`). *(Field note: a score attributed to the wrong file wasted two uploads.)*
 
