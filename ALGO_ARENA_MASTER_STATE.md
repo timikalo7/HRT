@@ -76,6 +76,13 @@ Cross-validation read about 0.13 below the leaderboard for the public model (3.4
 Reading: differences of 0.02-0.04 between files that are 99.8% correlated. The file without the public `improved_all` component scored lowest, and that model's leaderboard score exceeds its cross-validation by more than ours does (it estimates rates on out-of-sample first halves, which cross-validation cannot credit). So three more candidates raise its weight to 0.30-0.35 around the best-scoring variant: `c10_pub30_m10_var60`, `c12_pub30_m10_var30_pos30`, `c11_pub35_var65`. These were chosen using leaderboard feedback, not cross-validation.
 **Next idea with real upside (not done):** give our own model the same advantage — fit the EM amplitudes on in-sample plus out-of-sample first halves.
 
+### Final minutes (19:22-19:27 UTC)
+
+- Teammate branches checked: `main` (Rohit) 3.24 CV, `shriyans/news-drift-exposure` 3.26 CV, `claude/tender-albattani-rlkh3q` 3.52 CV standalone and 3.60-3.61 when blended onto our files. None beats ours standalone. The third is an independent model (correlation 0.95 with ours), so it was blended into `c13_best_plus_friend20` and `c14_five_model`.
+- **`c14_five_model` scored 3.699** — identical to `c6`. Best on the board for us: **3.699**.
+- E16: leaderboard-informed re-weighting. Using the three known-composition scores (c9 3.685, c7 3.658, c6 3.699) as exact linear constraints on each component's mean PnL on the hidden set, with the PnL covariance taken from in-sample out-of-fold streams, the best re-weighted blend is predicted at 3.701 against 3.699 for `c6`. Conclusion: with these five components the hidden-set ceiling is about 3.70; re-weighting cannot reach 3.75. Files `c15_lb_informed`, `c16_lb_informed_full` written but offer no expected gain.
+- Reaching 3.75+ needs a new source of signal, not a new blend. Candidates not yet tried: semi-supervised EM on in-sample plus out-of-sample first halves; a model of headline arrivals in bars 50-59; a likelihood for the target posterior that does not need a temperature fudge (its over-confidence at temperature 1 says the noise model is wrong somewhere).
+
 Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
 
 ---
