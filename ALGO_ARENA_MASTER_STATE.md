@@ -94,3 +94,15 @@ _No consultations yet._ Next: advisor-style challenge of the model ceiling and a
 | 5 | Nonlinear second stage (GBM on residual) | Uncertain | Med | low |
 
 **Next action:** audit response, then upload v1.
+
+## Final sprint (last 45 min)
+| # | Change | CV Sharpe (5-fold × 3 seeds) | Decision |
+|---|---|---|---|
+| 10 | arena_kit `model2 +seen` (rates from all visible paths incl. OOS bars 0–49, 9-bar window, vol^1.25 sizing, 2-SD clip) | 3.20 | base |
+| 11 | + mom3, 50-bar reversal | 3.225 | keep |
+| 12 | **Main-industry split**: industry from company-name suffix; session's main industry = most companies; rates fitted on main-industry headlines; owed drift split main/off | **3.402** | **FINAL → `submissions/kit4_ind.csv`** |
+| 13 | Infer main industry from price reaction in bars 0–49 | 3.24–3.40 | reject |
+| 14 | v2 headline-count sizing | 3.078 (= v1) | reject |
+
+Key finding: per-headline impact slope is 1.29 for main-industry headlines vs 0.27 for off-industry ones (split-half test).
+Run: `cd arena_kit && python3 model4.py --submit ind`.
