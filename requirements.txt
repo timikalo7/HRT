@@ -1,4 +1,5 @@
+pyarrow
 numpy
 pandas
-pyarrow
 scipy
+scikit-learn
