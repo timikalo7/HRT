@@ -38,9 +38,11 @@ HS = HA[HA["t"] < N].reset_index(drop=True)  # what a model may see for predicti
 oos_idx = np.arange(S_ins, S)
 
 
-def fit_rates(train_full, type_col, lmax=10, shrink=20.0, use_seen=True, profile=True):
+def fit_rates(train_full, type_col, lmax=10, shrink=20.0, use_seen=True, profile=True, hier=0.0):
     """train_full: bool mask of sessions whose full path may be used.
-    use_seen: also use bars < N of every other session (no targets involved)."""
+    use_seen: also use bars < N of every other session (no targets involved).
+    hier > 0 (with type_col='type_full'): shrink each full-type rate toward its short-type rate
+    with prior weight `hier` (in observation counts) instead of toward zero."""
     h = HA if use_seen else HA[train_full[HA["sess_idx"].to_numpy()]]
     s, t = h["sess_idx"].to_numpy(), h["t"].to_numpy()
     last = np.where(train_full[s], T - 1, N - 1)          # last usable bar index per headline
@@ -49,11 +51,18 @@ def fit_rates(train_full, type_col, lmax=10, shrink=20.0, use_seen=True, profile
     for L in range(1, lmax + 1):
         ok = (t + L <= last) & (t + L >= 1)
         rr = R[s[ok], t[ok] + L - 1] - mu
-        recs.append(pd.DataFrame({"type": h[type_col].to_numpy()[ok], "L": L, "r": rr}))
+        recs.append(pd.DataFrame({"type": h[type_col].to_numpy()[ok], "short": h["type_short"].to_numpy()[ok],
+                                  "L": L, "r": rr}))
     d = pd.concat(recs)
     core = d[d["L"] <= min(8, lmax)]
     g = core.groupby("type")["r"].agg(["sum", "count"])
-    rate = g["sum"] / (g["count"] + shrink)
+    if hier > 0:
+        gs = core.groupby("short")["r"].agg(["sum", "count"])
+        prior_s = gs["sum"] / (gs["count"] + shrink)
+        prior = core.drop_duplicates("type").set_index("type")["short"].map(prior_s).reindex(g.index).fillna(0.0)
+        rate = (g["sum"] + hier * prior) / (g["count"] + hier)
+    else:
+        rate = g["sum"] / (g["count"] + shrink)
     w = np.ones(lmax)
     if profile:
         d["k"] = d["type"].map(rate)
@@ -63,7 +72,7 @@ def fit_rates(train_full, type_col, lmax=10, shrink=20.0, use_seen=True, profile
     return rate, w
 
 
-def drift_feats(rate, w, type_col):
+def drift_feats(rate, w, type_col, extra=False):
     lmax = len(w)
     s, t = HS["sess_idx"].to_numpy(), HS["t"].to_numpy()
     k = HS[type_col].map(rate).fillna(0.0).to_numpy()
@@ -87,16 +96,21 @@ def drift_feats(rate, w, type_col):
         "unexpl": (lps[:, -1] - lps[:, 0]) - done,
         "n_recent": np.bincount(s[t >= N - lmax], minlength=S).astype(float),
     })
+    if extra:
+        e = resid - np.nanmean(resid)
+        X["rmom3"] = e[:, -3:].sum(1)
+        X["rmom5"] = e[:, -5:].sum(1)
+        X["rmom_all"] = e.sum(1)
     return X, resid.std(1), np.diff(lps, axis=1).std(1)
 
 
 def make_model(type_col="type_short", lmax=10, use_seen=True, profile=True, power=1.25,
-               resid_vol=True, alpha=10.0, clip=2.0, raw=False):
+               resid_vol=True, alpha=10.0, clip=2.0, raw=False, extra=False, hier=0.0):
     def f(tr, te):
         m = np.zeros(S, bool)
         m[tr] = True
-        rate, w = fit_rates(m, type_col, lmax, use_seen=use_seen, profile=profile)
-        X, rv, v = drift_feats(rate, w, type_col)
+        rate, w = fit_rates(m, type_col, lmax, use_seen=use_seen, profile=profile, hier=hier)
+        X, rv, v = drift_feats(rate, w, type_col, extra=extra)
         vol = rv if resid_vol else v
         if raw:
             p, pr = X["owed"].to_numpy()[te], X["owed"].to_numpy()[tr]
@@ -118,7 +132,28 @@ VARIANTS = {
     "all, power1.5": make_model(power=1.5),
     "all, type_full": make_model(type_col="type_full"),
     "all, raw owed": make_model(raw=True),
+    # round 3
+    "+seen+extra": make_model(use_seen=True, profile=False, resid_vol=False, lmax=9, extra=True),
+    "hier20": make_model(type_col="type_full", use_seen=True, profile=False, resid_vol=False, lmax=9, hier=20),
+    "hier100": make_model(type_col="type_full", use_seen=True, profile=False, resid_vol=False, lmax=9, hier=100),
+    "hier100+extra": make_model(type_col="type_full", use_seen=True, profile=False, resid_vol=False, lmax=9,
+                                hier=100, extra=True),
 }
+
+
+def ensemble(names):
+    """Average of standardised predictions (scaled by the train-pred sd of each member's output)."""
+    def f(tr, te):
+        out = 0.0
+        for nm in names:
+            p = VARIANTS[nm](tr, te)
+            out = out + p / (np.std(p) + 1e-12)
+        return out / len(names)
+    return f
+
+
+VARIANTS["ens_seen_hier"] = ensemble(["+seen", "hier100"])
+VARIANTS["ens_seen_hier_extra"] = ensemble(["+seen+extra", "hier100+extra", "+seen+profile+rvol"])
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

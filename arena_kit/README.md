@@ -17,7 +17,7 @@ Seeing a CV table and `submission.csv` means the kit works.
 4. Run `python baseline.py --data data`. It runs CV on every model, refits the best one and writes `submission.csv`.
 
 ## Real-data results (24 Nov 2026)
-Best model: `python model2.py --submit "+seen"` (CV Sharpe 3.20 ± 0.27), which writes `../predictions.csv`.
+Best model: `python model2.py --submit ens_seen_hier_extra` (CV Sharpe 3.24 ± 0.26), which writes `../predictions.csv`. It averages three drift models with drift-adjusted 3-bar, 5-bar and whole-window momentum features. It beats the single `+seen` model (3.20) in 14 of 15 paired folds, by +0.038 on average.
 - Each headline type pushes the price at a fixed rate (about ±3 bps per bar) for 10 bars, starting the bar after it appears.
 - The numbers inside headlines ($ amounts, %) do not change the effect, and every company in a session counts the same.
 - Helped: coarse types (`type_short`), a 9-bar window, vol sizing to the power 1.25, and estimating rates from all visible paths, including oos bars 0-49.
