@@ -38,7 +38,20 @@ class Model:
         X = np.c_[np.ones(len(idx)), f, mom3, rev50]
         self.b = np.linalg.lstsq(X, ret[idx], rcond=None)[0]
         self.vol_med = np.median(vol)
+        if self.version == "v2":
+            # risk model: expected squared error grows with noise vol, shrinks when many headlines
+            # already happened (session headline budget looks ~fixed -> fewer future headlines)
+            res2 = (ret[idx] - X @ self.b) ** 2
+            npast = self._npast(hl, idx)
+            V = np.c_[np.ones(len(idx)), vol ** 2, npast]
+            self.c = np.linalg.lstsq(V, res2, rcond=None)[0]
         return self
+
+    @staticmethod
+    def _npast(hl, idx):
+        pos = {s: i for i, s in enumerate(idx)}
+        h = hl[hl.si.isin(pos) & (hl.bar_ix <= HALF)]
+        return np.bincount(h.si.map(pos).to_numpy(), minlength=len(idx)).astype(float)
 
     def predict(self, piv, hl, idx):
         hl = hl.assign(tid=hl.tmpl.map(self.tmap))
@@ -48,4 +61,8 @@ class Model:
         mom3, rev50, vol = (x[idx] for x in price_feats(piv))
         mu = np.c_[np.ones(len(idx)), f, mom3, rev50] @ self.b
         mu = mu - mu.mean()  # target is market-adjusted: a common offset only adds noise
+        if self.version == "v2":
+            V = np.c_[np.ones(len(idx)), vol ** 2, self._npast(hl, idx)]
+            var = np.maximum(V @ self.c, 1e-9)
+            return mu / np.sqrt(var)
         return mu / (vol / self.vol_med)

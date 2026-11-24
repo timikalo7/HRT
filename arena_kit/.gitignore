@@ -1,0 +1,12 @@
+# competition + generated data (may be confidential; regenerate fake data with make_fake.py)
+data/
+fake_data/
+*.parquet
+*.csv
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+arena/
