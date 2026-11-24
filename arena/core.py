@@ -3,7 +3,7 @@ synthetic stock/news prediction challenge.
 
 Data contract (organiser's starter kit): five parquet files in one folder --
 ins_bars, ins_headlines, ins_returns, oos_bars, oos_headlines. The folder is taken
-from the ARENA_DATA environment variable, defaulting to ./data (git-ignored).
+from the ARENA_DATA environment variable, defaulting to the repo's data/ (git-ignored).
 
 Nothing here imports the organiser's sessions.py; the scoring formula and the
 submission format are re-implemented to match it exactly.
@@ -42,7 +42,8 @@ _SLOTS = {
 
 
 def data_dir() -> Path:
-    return Path(os.environ.get("ARENA_DATA", "data")).resolve()
+    default = Path(__file__).resolve().parent.parent / "data"
+    return Path(os.environ.get("ARENA_DATA", default)).resolve()
 
 
 def split_company(headline: str) -> tuple[str, str]:

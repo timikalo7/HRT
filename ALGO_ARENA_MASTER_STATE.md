@@ -7,6 +7,35 @@ Evidence labels used throughout:
 
 ---
 
+## Session 2 update (2026-11-24, live competition window)
+
+**Confirmed.** The user supplied the official notebook, challenge page text and data. The five parquet files and `sessions.py` are byte-identical (SHA-256) to the public edition, and the page text matches section B. Hypothesis C.1 is now fact. The challenge page as pasted contains no restriction on outside help.
+**Deadline.** One hour from the start; started about 18:29 UTC, so uploads must be in by about 19:25. Current leaderboard leader: 3.609. 10 uploads.
+**User decisions.** Build on the public ~3.6 solution and improve it; the strategy must be explainable (see `STRATEGY.md`).
+
+**New findings [MEASURED]**
+- Sectors: exactly 5 sectors of 16 companies, from co-occurrence (the suffix-based map in one public solution misplaces several names). Every session = 3 companies from one sector + 1 drawn from anywhere (83.5% other-sector, 16.5% same-sector).
+- Hidden target: EM on full sessions gives role weights own / same-sector peer / other-sector = 1 / 0.25–0.28 / −0.02. The target is weakly identified (mean max posterior 0.65 even with 100 bars).
+- At temperature 1 the bar-49 target posterior is over-confident and costs Sharpe; flattening it (temperature 4) is better than both trusting it and ignoring it.
+
+**Experiments (5-fold CV, identical folds, seeds 0 and 1 unless noted)**
+
+| ID | Change | Result | Decision |
+|---|---|---|---|
+| E2 | Latent-target forecast, position = mu / sigma (seed 0) | 3.297 | superseded |
+| E3 | Posterior temperature 1 / 2 / 4 / prior-only, sizing mu/(10 sigma^2 + mu^2) (seed 0) | 3.392 / 3.433 / 3.442 / 3.414 | keep temperature 4 |
+| E4 | Sizing mu/sigma^k for k = 0, 0.5, 1, 1.5, 2 vs mu/(10 sigma^2 + mu^2), temperature 4 (seed 0) | 3.328, 3.370, 3.374, 3.334, 3.250 vs 3.442 | keep the Sharpe-optimal form |
+| E5 | Variance from Garman–Klass + gaps instead of close-to-close sd | 3.442 -> 3.493 / 3.492; flat for scale 12–25 | keep, scale 15 |
+| E6 | Public `improved_all` re-run on our folds | 3.483 / 3.463; regenerated out-of-sample file equals the published one (max diff 7e-13) | used as blend component |
+| E7 | Public forecast re-sized as p/(v + p^2) | 3.495 / 3.477 alone, no gain inside the blend | rejected (no added value) |
+| E8 | 50/50 blend of public model and latent-target model, each at unit sd | **3.546 / 3.537**; vs public alone +0.063 / +0.074, bootstrap sd 0.027, P(>0) 0.992 / 0.998; weights 0.4–0.6 flat | **final candidate** |
+
+**Status.** `arena/latent.py` (model B), `arena/blend.py`, `STRATEGY.md`. Upload files are written to `submissions/` (git-ignored): `predictions_c2_blend.csv` (final candidate), `predictions_c1_latent.csv` (our model alone), `predictions_public_improved_all_rerun.csv` (public model re-run; not to be uploaded as our own).
+**Checks run by us.** Predictions unchanged when bars 50–99 of test sessions are overwritten with noise (max change 0.0); sector map identical when built from first-half headlines only; all files pass the upload format checks; no position exceeds 3.1 sd.
+**Advisor / auditor.** Independent advisor (fresh-context agent, not `/advisor`) and independent auditor both launched; see sections H and I for their outcomes once returned.
+
+---
+
 ## A. Competition identity
 
 | Field | Value | Evidence |
