@@ -185,6 +185,8 @@ class LatentTarget:
         owed_if_target = pend + self.peer * peer_pend
         owed_if_unseen = self.peer * (prep.main * pend).sum(1)
         mu = (p[:, :4] * owed_if_target).sum(1) + p[:, 4] * owed_if_unseen
+        # second moment of the owed drift over the target posterior (>= mu^2)
+        self.last_m2 = (p[:, :4] * owed_if_target ** 2).sum(1) + p[:, 4] * owed_if_unseen ** 2
         return mu, range_variance(test)
 
     def predict(self, test: Block) -> np.ndarray:

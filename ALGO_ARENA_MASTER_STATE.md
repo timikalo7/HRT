@@ -32,7 +32,14 @@ Evidence labels used throughout:
 
 **Status.** `arena/latent.py` (model B), `arena/blend.py`, `STRATEGY.md`. Upload files are written to `submissions/` (git-ignored): `predictions_c2_blend.csv` (final candidate), `predictions_c1_latent.csv` (our model alone), `predictions_public_improved_all_rerun.csv` (public model re-run; not to be uploaded as our own).
 **Checks run by us.** Predictions unchanged when bars 50–99 of test sessions are overwritten with noise (max change 0.0); sector map identical when built from first-half headlines only; all files pass the upload format checks; no position exceeds 3.1 sd.
-**Advisor / auditor.** Independent advisor (fresh-context agent, not `/advisor`) and independent auditor both launched; see sections H and I for their outcomes once returned.
+**Independent audit (fresh-context agent), returned 19:00 UTC — verdict SAFE TO UPLOAD for `predictions_c1_latent.csv` (sha256 97cd47dd...).**
+- Critical: none. Empirical leak tests all gave identical predictions (max diff 0): block rebuilt from raw parquet with only bars 0-49; bars 50-99, late headlines and labels of test sessions scrambled then refit; training labels shuffled (`fit` never reads labels); sector map built from the training fold only.
+- Major 1: the brief quoted a stale score. Resolved: the current code scores 3.493 / 3.492 / 3.493 (seeds 0-2), confirmed independently by the auditor.
+- Major 2: sampling noise. Bootstrap sd of the CV Sharpe 0.146 (5-95%: 3.26-3.72). Accepted; nothing to fix.
+- Minor, accepted: `predict()` relies on the caller passing a first-half block (3.7% of predictions change on an untruncated block; never triggered because `cross_validate` and the out-of-sample files are truncated); hyperparameters tuned on the same CV but the curves are flat (temperature 2-8: 3.485-3.493; variance scale 12-25: 3.486-3.493), selection bias at most ~0.05; slot overflow for a fifth company would be a bug but the maximum is 4; 21% of model B's predictions are exactly zero (sessions with nothing pending) — the blend has none; `mu` is over-stated ~17% (slope 0.834), which only touches the small mu^2 term.
+- Not covered by the audit: `arena/blend.py`, the blend file and the public re-run file. Our own checks: the blend file equals 0.5/0.5 of the audited file and the public re-run at unit scale (max diff ~1e-15) and passes the format checks; the public re-run equals that repo's published file (max diff 7e-13), which its author reports scored about 3.6.
+**Rapid arXiv q-fin search (fresh-context agent).** Sentiment literature: not applicable to templated headlines (consistent with the measured 2.6 vs 3.0+). One idea tested — use the posterior second moment of the owed drift in the sizing denominator (after Spears, Zohren, Roberts, arXiv:2007.15982): model B 3.493 -> 3.497, blend 3.546 -> 3.548 / 3.537 -> 3.539. Inside noise; **rejected** so the audited file stays unchanged. Blend-weight optimisation (Kakushadze, arXiv:1405.4716) already covered by E8: weights 0.4-0.6 are flat.
+**Independent advisor (fresh-context agent, not `/advisor`).** Launched 18:41 UTC; had not returned when the candidate was handed over.
 
 ---
 
