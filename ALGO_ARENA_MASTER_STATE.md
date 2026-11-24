@@ -83,6 +83,11 @@ Reading: differences of 0.02-0.04 between files that are 99.8% correlated. The f
 - E16: leaderboard-informed re-weighting. Using the three known-composition scores (c9 3.685, c7 3.658, c6 3.699) as exact linear constraints on each component's mean PnL on the hidden set, with the PnL covariance taken from in-sample out-of-fold streams, the best re-weighted blend is predicted at 3.701 against 3.699 for `c6`. Conclusion: with these five components the hidden-set ceiling is about 3.70; re-weighting cannot reach 3.75. Files `c15_lb_informed`, `c16_lb_informed_full` written but offer no expected gain.
 - Reaching 3.75+ needs a new source of signal, not a new blend. Candidates not yet tried: semi-supervised EM on in-sample plus out-of-sample first halves; a model of headline arrivals in bars 50-59; a likelihood for the target posterior that does not need a temperature fudge (its over-confidence at temperature 1 says the noise model is wrong somewhere).
 
+### Extension (19:28-19:30 UTC)
+
+- E17: continuous per-company exposures (Gaussian/ridge posterior from the first-half price reaction) as an extra second-stage feature. Best setting (prior variance 0.5, range-based noise scale): 3.602 / 3.604 against 3.589 / 3.592 — about +0.01 on both fold assignments, small but consistent. As a replacement for the discrete-target forecast it is worse (3.25-3.60 depending on prior variance). **Not built into the model**: found with one upload left and no time to regenerate and re-test. Worth adopting next: `research/stage4.py`.
+- Last upload handed over: `c15_lb_informed` (predicted about 3.70). Best confirmed leaderboard score: **3.699**.
+
 Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
 
 ---
