@@ -55,7 +55,8 @@ Large forecasts are damped, and noisy sessions shrink. In practice `s² = k · p
 
 Before spending time on marginal features, measure what each missing piece of information would be worth:
 - Replace one estimated quantity with an **oracle** (its value estimated from data the model cannot use, e.g. bars after the decision, or the true value in a simulation) and rerun the full pipeline.
-- The ingredient whose oracle gives the biggest jump is the bottleneck. Here, knowing which company is the stock lifted 3.59 → 4.2, while ~30 extra features moved the score by less than 0.01 each. That should have been measured at minute 20, not minute 75.
+- The ingredient whose oracle gives the biggest jump is the bottleneck. Here, estimating which company is the stock from bars 0–49 *and* 60–99 lifted 3.59 → 3.66, the largest of any ingredient, while ~30 extra features moved the score by less than 0.01 each. That should have been measured at minute 20, not minute 75.
+- **Keep the label window out of the oracle.** A first version that also used bars 50–59 reported 4.2, which mostly measured the label itself.
 - Oracles are diagnostics only. Never upload anything that uses them.
 
 ## 7. Blending

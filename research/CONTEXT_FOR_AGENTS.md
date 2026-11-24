@@ -43,7 +43,7 @@ No effect or no gain: sentiment / TF-IDF / word features; numbers inside headlin
 
 - **Exposure structure.** For main-sector headline pairs in the same session with non-overlapping response windows, the product of their normalised responses averages **+0.80 (se 0.05) for the same company** and **−0.23 (se 0.03) for different companies**. "Exactly one target at weight 1, peers at a fixed 0.25" predicts +0.80 and about **−0.37**. The same-company variance fits; the cross-company anticorrelation is only about 60% of what an exactly-one-target model implies. This points to a per-session, per-company random exposure component (peer weights that vary by session, or exposures that are not sum-constrained). A model with the right exposure distribution should give a calibrated posterior without the temperature fudge.
 - **Over-confidence at temperature 1** says the likelihood is misspecified: exposure structure (above), noise that is not i.i.d. Gaussian (the reversal in §2.6 suggests mean-reverting noise), or both.
-- **Diagnostic only, not a usable model:** computing the target posterior from all 100 bars (which includes the label window) gives Sharpe 4.2. It shows the headroom is in knowing the exposures, not in more correction features.
+- **Diagnostic only, not a usable model:** computing the target posterior from bars 0–49 plus 60–99 (label window excluded) lifts the pipeline from 3.589 to 3.657 — the largest gain of any ingredient tested. An earlier version that included bars 50–59 reported 4.2, but that mostly measured the label and should be ignored.
 
 ## 6. How to evaluate (mandatory)
 

@@ -137,7 +137,7 @@ Read `references/leaderboard-strategy.md` before the first upload. In short:
 
 Work in tiers: **1 essential** (a valid entry), **2 high-value, low-risk**, **3 advanced**, **4 experimental**. Tier 1 exists before anything else.
 
-- Run a **headroom analysis** early: replace one estimated ingredient at a time with an oracle (data the model can't use, or the truth in a simulation), and invest where the jump is largest. *(Field note: about 30 marginal features gave under 0.01 each; the oracle for the hidden variable showed 3.59 → 4.2, but we measured it 75 minutes in.)*
+- Run a **headroom analysis** early: replace one estimated ingredient at a time with an oracle (data the model can't use, or the truth in a simulation), and invest where the jump is largest. The oracle must never see the label window itself, or it measures the label rather than the ingredient. *(Field note: about 30 marginal features gave under 0.01 each. A clean oracle for the hidden variable gave 3.59 → 3.66; a contaminated one that saw the label window gave a misleading 4.2. Both were measured 75 minutes in, too late to act on.)*
 - Prefer expected gain per minute. Two quick independent ideas beat one deep rabbit hole when the clock is short.
 - Near the deadline: stop exploring, freeze the architecture, run the gate, preserve the fallback, update STRATEGY.md, and reserve the final minutes for uploading.
 - Subagents for parallel hypotheses are worth it, but each gets one tightly specified hypothesis, a time budget it will actually meet, results saved to disk and a clear "no gain" outcome. Launch them early. A "continuous improver" should be a queue of distinct hypotheses, not one agent told to "keep improving".
