@@ -100,6 +100,15 @@ Reading: differences of 0.02-0.04 between files that are 99.8% correlated. The f
 
 **State at the end of the window.** Best confirmed leaderboard score 3.699 (`c6_blend3_variant`, also `c14_five_model`). Best cross-validated model: `research/final_variant.py`, 3.61. Strongest unsubmitted-or-last file: `c18_final_blend`. Leads tested and closed: headline numbers and slot words, event type as a target marker, company-specific volatility, a dozen second-stage features, forecast-level combination, fitted variance. Leads still open: a clean ceiling estimate for target inference (bars 0-49 plus 60-99), semi-supervised EM, a wildcard-aware model for sessions where all four companies share a sector.
 
+### After the deadline (19:50-20:05 UTC) — competition closed
+
+- **Final best: 3.699** (`c6_blend3_variant`, copy at `submissions/BEST_3.699_c6_blend3_variant.csv`, sha256 b78f601c...). A teammate's `c6_step` (0.59 improver variant + 0.18 public + 0.19 m3564 + 0.05 latent v1) scored 3.65 despite a predicted +0.0002; consistent with near-identical files being lottery tickets.
+- E23 (`research/main/oracle_exposure.py`, diagnostic, uses bars 60-99): target posterior estimated from bars 0-49 plus 60-99 lifts the pipeline 3.589 -> 3.657 (seed 0); continuous ridge exposures from the same data 3.63. The earlier 4.2 "oracle" included the label window and overstates the attainable gain.
+- E24 (`research/main/volscale_test.py`): headline effects are proportional to session volatility (slope by volatility quintile 0.96 / 1.08 / 1.24 / 1.47 / 1.60; interaction ratio 1.03-1.06); no effect at lags 11-60; additive across overlapping headlines.
+- E25 (`research/volscaled.py`): solving in volatility units gave 3.589 / 3.597 vs 3.589 / 3.592 — no gain — and **failed the leak test** (max change 79.7) because it estimated volatility from every bar present in the block. Never uploaded. Lesson recorded in the skill: models slice to the decision bar themselves.
+- Research workflow (five independent tracks with adversarial verification) stopped when the competition closed; partial outputs in the scratchpad were not reviewed.
+- Lessons are folded into the `algo-arena` skill (`.claude/skills/algo-arena/`): live-competition protocol, upload gate and ledger scripts, leaderboard strategy, synthetic-market playbook, field notes.
+
 Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
 
 ---

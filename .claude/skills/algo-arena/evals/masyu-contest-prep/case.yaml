@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: masyu-contest-prep
+expected_outcome: |
+  Treats this as algorithm engineering, not trading. Proposes a concrete solver approach with a reason it fits Masyu
+  (constraint propagation of the black/white pearl rules plus search, or a SAT/CP encoding with lazy single-loop
+  connectivity), compares Python and C++ against the 10-second limit and recommends one, and plans tonight's work:
+  a baseline solver early, a test set including 40x40 worst cases, timing benchmarks and a validity checker.
+  It does not bring in trading machinery such as Sharpe ratios or position sizing.

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: new-live-challenge-first-reply
+expected_outcome: |
+  A short, action-led first reply for a 45-minute live competition: it anchors on the clock with a time plan,
+  asks the strategy-deciding questions (best vs latest upload counts, public/private split, outside help allowed),
+  plans to look for prior art on this exact challenge and to hash the data, builds the evaluation harness, leak test
+  and upload validator before serious modelling, plans an early anchor upload, and mentions Sharpe-optimal sizing.
+  It does not dump a long 14-section analysis into the chat.
