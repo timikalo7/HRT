@@ -122,11 +122,14 @@ Leaderboard results (all on the same 10,000 OOS sessions; best upload counts):
 |---|---|
 | teammate `c2_blend` (50% latent model + 50% public improved_all) | 3.669 |
 | `c3_plus_ours25` (75% teammate latent+stage2, 25% our learned-industry model) | 3.653 |
-| **`lb_blend_c2_c3o`** (50/50 of the two above) | **3.699 ← final best** |
+| `lb_blend_c2_c3o` (50/50 of the two above) | not confirmed (earlier mis-attributed as 3.699) |
+| **teammate `c6_blend3_variant`** (70% improver latent variant + 15% improved_all + 15% m3564) | **3.699 ← final best** |
+| `fitted_sharpe_3702` (fit built on the mis-attributed 3.699) | 3.650 |
 | `final_lb_blend_m3564_15` (above + 15% public m3564) | 3.673 |
-| `opt_c2_553_c3o_447_m_neg071` (leaderboard-calibrated: −7.1% m3564) | not uploaded (closed); predicted 3.70–3.71 |
+| `c6_step` (refit with c6 = 3.699; predicted +0.0013–0.0016) | not uploaded (submissions closed) |
 
 Lessons:
+- Confirm which file produced each leaderboard score before fitting to it: one wrong attribution sent two uploads the wrong way.
 - Blending files that scored similarly helped more on the leaderboard than prediction correlation suggested (PnL correlation 0.96 vs prediction correlation 0.985).
 - m3564's implied OOS Sharpe was only ~3.1–3.35, so adding it hurt.
 - The structural gains came from data structure (10-bar drift, sector filter, latent target company), not from tuning. The remaining gap to ~3.8 most likely needs a sharper target-company estimate.
