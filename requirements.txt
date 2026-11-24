@@ -1,0 +1,8 @@
+pandas
+numpy
+pyarrow
+attrs
+rich
+tqdm
+matplotlib
+scikit-learn
