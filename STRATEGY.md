@@ -15,23 +15,24 @@ The market is simulated, so instead of fitting a black box we worked out how the
 
 - **Unfinished push.** For each headline in bars 40–49, effect of its event kind × the share of its 10-bar push that falls in bars 50–59.
 - **Who is the stock?** For each candidate company, compare the first 50 bars of returns with what its headlines should have done. That gives a probability for each candidate (including "the stock hasn't appeared in a headline yet"). The forecast weights each headline by the chance it is about the stock itself (full weight) or a same-sector peer (quarter weight). With only 50 noisy bars this probability is uncertain, so it is deliberately softened rather than trusted outright.
-- **Small corrections** in the second model: sessions with a lot of early news tend to have less later, repeated news about one company, conflicting news, and how much of the first-half move the headlines fail to explain.
+- **Small corrections.** Price moves in the first half that the headlines do not explain tend to partly reverse; sessions with a lot of early news tend to have less later; and the number of same-sector headlines still active matters.
 
 ## Position sizing
 
 The score is the Sharpe ratio of `position × return`, so only relative size across sessions matters. For a forecast μ and return variance σ², the Sharpe-maximising position is proportional to **μ / (σ² + μ²)**: bet more when the forecast is large relative to the session's noise, and stop scaling up once the forecast is large in absolute terms. Each session's noise is estimated from its own first 50 bars using the high–low range of every bar (Garman–Klass), which is far less noisy than close-to-close moves and was worth +0.05 Sharpe on its own.
 
-## Final submission: a blend of two models
+## Final submission: a blend of three models
 
-Both use the structure above but estimate it differently, so their errors differ.
+All three use the structure above but estimate it differently, so their errors differ.
 
-| Model | How it works | Cross-validated Sharpe |
-|---|---|---|
-| A. Regression model | Unfinished push from main-sector headlines plus the small corrections, linear fit, positions divided by predicted risk. Built on a publicly available solution to this challenge. | 3.47 |
-| B. Hidden-company model | Probability model over which company is the stock, fitted by expectation–maximisation; forecast is the probability-weighted unfinished push; Sharpe-optimal sizing with a range-based volatility estimate. Our own. | 3.49 |
-| **50/50 blend** (each scaled to unit size first) | | **3.54** |
+| Model | How it works | Cross-validated Sharpe | Weight |
+|---|---|---|---|
+| A. Hidden-company model (ours) | Probability model over which company is the stock, fitted by expectation–maximisation. Forecast = probability-weighted unfinished push, plus three corrections fitted by least squares: the part of the first-half move the headlines do not explain (it partly reverses), the number of headlines so far, and the number of same-sector headlines still pushing. Sharpe-optimal sizing with a range-based volatility estimate. | 3.59 | 70% |
+| B. Regression model | Unfinished push from main-sector headlines plus corrections, positions divided by predicted risk. A re-run of a publicly available solution. | 3.47 | 15% |
+| C. Second hidden-company model | A different published implementation of the hidden-company idea, re-run. | 3.46 | 15% |
+| **Blend** (each scaled to unit size first) | | **3.60** | |
 
-The two are 93% correlated. On identical folds the blend beats model A alone by +0.06 to +0.07 Sharpe, positive in over 99% of bootstrap resamples.
+Where the gains came from, measured on identical folds: one-feature baseline 3.04 → hidden company and softened probabilities 3.44 → range-based volatility 3.49 → the three corrections 3.59 → blending 3.60. The biggest single step after the structure itself was the "unexplained move" correction (+0.07).
 
 ## How we checked it
 
@@ -41,4 +42,4 @@ The two are 93% correlated. On identical folds the blend beats model A alone by 
 
 ## What did not help
 
-Sentiment and word-level text features, the numbers inside headlines, gradient boosting on the same inputs, past price momentum, and trusting the "which company" probability at face value (it is over-confident on 50 bars).
+Sentiment and word-level text features; the numbers, regions and segments inside headlines (tested: no effect); gradient boosting on the same inputs; recent price momentum; a dozen further correction features (all within noise); and trusting the "which company" probability at face value (it is over-confident on 50 bars).
