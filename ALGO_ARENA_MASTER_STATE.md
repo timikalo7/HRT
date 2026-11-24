@@ -63,6 +63,19 @@ Cross-validation read about 0.13 below the leaderboard for the public model (3.4
 - Independent advisor agent: terminated by the account usage limit at about 19:12 without reporting. Its partial work can be resumed after the limit resets.
 - Candidate files for the remaining uploads, in order: `c5_blend3` (3.60), `c7_ours_m3564`, `c6_blend3_variant`, `c3_latent_stage2`.
 
+### Leaderboard results (19:16-19:20 UTC)
+
+| File | Leaderboard Sharpe |
+|---|---|
+| first upload (c2 or c5, not confirmed) | 3.669 |
+| `c9_blend3_pos` | 3.685 |
+| `c7_ours_m3564` (no `improved_all` component) | 3.658 |
+| `c6_blend3_variant` (improver's sign-split + fitted-variance variant) | **3.699 — best so far** |
+| one further file, reported by the user as poor (which one not confirmed) | — |
+
+Reading: differences of 0.02-0.04 between files that are 99.8% correlated. The file without the public `improved_all` component scored lowest, and that model's leaderboard score exceeds its cross-validation by more than ours does (it estimates rates on out-of-sample first halves, which cross-validation cannot credit). So three more candidates raise its weight to 0.30-0.35 around the best-scoring variant: `c10_pub30_m10_var60`, `c12_pub30_m10_var30_pos30`, `c11_pub35_var65`. These were chosen using leaderboard feedback, not cross-validation.
+**Next idea with real upside (not done):** give our own model the same advantage — fit the EM amplitudes on in-sample plus out-of-sample first halves.
+
 Upload files in `submissions/`: c1 (model B, first version, 3.49), c2 (50/50 with public, 3.54), c3 (model B with second stage, 3.59), c4 (0.25 public + 0.75 c3, 3.59), **c5 (three-way, 3.60)**, plus the two public re-runs (blend components only).
 
 ---
